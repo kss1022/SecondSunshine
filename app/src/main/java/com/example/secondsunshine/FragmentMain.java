@@ -1,7 +1,7 @@
 package com.example.secondsunshine;
 
 import android.content.Context;
-import android.os.AsyncTask;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -9,23 +9,26 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.loader.content.AsyncTaskLoader;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.secondsunshine.Utility.NetworkUtil;
 
-import java.io.IOException;
 import java.net.URL;
 
-public class FragmentMain extends Fragment {
+public class FragmentMain extends Fragment
+        implements CustomAdapter.listItemClickLisener {
 
+    RecyclerView mRecylcerView;
+    RecyclerView.LayoutManager mLayoutManager;
+    CustomAdapter mCustomAdapter;
 
-    TextView mtextView;
+    Toast mToast;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,15 +37,24 @@ public class FragmentMain extends Fragment {
     }
 
     Context mContext;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         mContext = getActivity();
-        mtextView = rootView.findViewById(R.id.tv_mainfragment);
-        mtextView.setText("프레그먼트 설정완료");
 
+        mRecylcerView = rootView.findViewById(R.id.recyclerview_main);
+
+        mLayoutManager = new LinearLayoutManager(getActivity());
+
+        mRecylcerView.setLayoutManager(mLayoutManager);
+        mRecylcerView.setHasFixedSize(true);
+
+        mCustomAdapter = new CustomAdapter(50, this);
+
+        mRecylcerView.setAdapter(mCustomAdapter);
 
         return rootView;
     }
@@ -51,7 +63,7 @@ public class FragmentMain extends Fragment {
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
 
-        inflater.inflate(R.menu.main, menu);
+        inflater.inflate(R.menu.refresh, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -61,17 +73,10 @@ public class FragmentMain extends Fragment {
 
         int itemId = item.getItemId();
 
-        switch (itemId)
-        {
-            case R.id.action_search:
-                Toast.makeText(mContext, "action_search", Toast.LENGTH_LONG).show();
-
-                 URL forecastURL = NetworkUtil.buildURL(NetworkUtil.OPENWEATHERMAP_BASE_URL);
-
-                new WeatherTask().execute(forecastURL);
-
-
-               break;
+        switch (itemId) {
+            case R.id.action_refresh:
+                actionRefresh();
+                break;
             default:
                 break;
         }
@@ -80,7 +85,31 @@ public class FragmentMain extends Fragment {
     }
 
 
+    @Override
+    public void onClickItem(int number) {
+
+        if (mToast != null) {
+            mToast.cancel();
+        }
+        String toastMesssage = "Click positon : " + number;
+
+        mToast = Toast.makeText(mContext, toastMesssage, Toast.LENGTH_LONG);
+        mToast.show();
+
+        Intent intent = new Intent(getActivity(), DetailActivity.class);
+        intent.putExtra(Intent.EXTRA_TEXT, toastMesssage);
+        startActivity(intent);
+    }
 
 
+    private void actionRefresh()
+    {
+        mToast = Toast.makeText(mContext, "action_search", Toast.LENGTH_LONG);
+        mToast.show();
+
+        URL forecastURL = NetworkUtil.buildURL(NetworkUtil.OPENWEATHERMAP_BASE_URL);
+
+        new WeatherTask().execute(forecastURL);
+    }
 
 }

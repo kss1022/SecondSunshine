@@ -93,7 +93,7 @@ public class WeatherTask extends AsyncTask<URL, Void, String> {
             JSONObject dayForcast = null;
 
 
-            for (int i = 0; i <= jsonLength; i++) {
+            for (int i = 0; i < jsonLength; i++) {
                 dayForcast = jsonArray.getJSONObject(i);
 
                 utcTime = TimeUtil.convertUtcToLocal(dayForcast.getString(OWM_DT));

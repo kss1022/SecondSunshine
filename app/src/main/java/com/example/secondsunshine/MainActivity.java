@@ -22,9 +22,7 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         FragmentMain fragmentMain = new FragmentMain();
-
         fragmentTransaction.replace(R.id.mainfragment_container, fragmentMain)
                 .commit();
-
     }
 }
