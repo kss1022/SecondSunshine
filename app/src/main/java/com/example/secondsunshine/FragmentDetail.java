@@ -87,7 +87,7 @@ public class FragmentDetail extends Fragment {
 
         URL forecastURL = NetworkUtil.buildURL(NetworkUtil.OPENWEATHERMAP_BASE_URL);
 
-        new WeatherTask().execute(forecastURL);
+//        new WeatherTask().execute(forecastURL);
     }
 
 

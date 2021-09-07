@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,7 +21,12 @@ import java.nio.Buffer;
 public class NetworkUtil {
     final static String LOG_TAG = NetworkUtil.class.getSimpleName();
 
+
+
+
 //    https://api.openweathermap.org/data/2.5/forecast?q=Seoul&mode=json&units=metric&cnt=14&appid=cc5e1980ddf504a11985dc39a47850bf
+
+    public final static int DAY_NUMBER = 14;
     public final static String OPENWEATHERMAP_BASE_URL =  "https://api.openweathermap.org/data/2.5/forecast";
     final static String PARAM_LOCATION = "q";
     final static String PARAM_MODE = "mode";
@@ -36,7 +42,7 @@ public class NetworkUtil {
                 .appendQueryParameter(PARAM_LOCATION, "Seoul")
                 .appendQueryParameter(PARAM_MODE, "json")
                 .appendQueryParameter(PARAM_UNITS, "metric")
-                .appendQueryParameter(PARAM_DAY, "14")
+                .appendQueryParameter(PARAM_DAY, Integer.toString(DAY_NUMBER))
                 .appendQueryParameter(PARAM_KEY, "cc5e1980ddf504a11985dc39a47850bf")
                 .build();
 
@@ -83,4 +89,87 @@ public class NetworkUtil {
 
 
 
+
+
+
+
+
+    final static String OWM_LIST = "list";
+    final static String OWM_DT = "dt";
+    final static String OWM_MAIN = "main";
+    final static String OWM_TEMP_MAX = "temp_max";
+    final static String OWM_TEMP_MIN = "temp_min";
+    final static String OWM_HUMIDIRT = "humidity";
+    final static String OWM_PRESSURE = "pressure";
+    final static String OWM_WEATHER = "weather";
+    final static String OWM_ID = "id";
+    final static String OWM_WEATHER_MAIN = "main";
+    final static String OWM_DESCRIPTION = "description";
+    final static String OWM_DT_TXT = "dt_txt";
+
+    //json 데이터에서 원하는 정보를 뺴온다.
+    public static String[] getDataFromJson(String JsonData) {
+        String weatherData[] = new String[DAY_NUMBER];
+
+
+        String utcTime;
+
+        double high;
+        double low;
+        int humidity;
+        double pressure;
+
+        int weatherId;
+        String mainWather;
+        String description;
+
+        String dateText;
+
+        try {
+            JSONObject jsonObject = new JSONObject(JsonData);
+
+
+            JSONArray jsonArray = jsonObject.getJSONArray(OWM_LIST);
+
+            int jsonLength = jsonArray.length();
+
+            JSONObject dayForcast = null;
+
+
+            for (int i = 0; i < jsonLength; i++) {
+                dayForcast = jsonArray.getJSONObject(i);
+
+                utcTime = TimeUtil.convertUtcToLocal(dayForcast.getString(OWM_DT));
+
+                JSONObject mainObject = dayForcast.getJSONObject(OWM_MAIN);
+
+                high = mainObject.getDouble(OWM_TEMP_MAX);
+                low = mainObject.getDouble(OWM_TEMP_MIN);
+                humidity = mainObject.getInt(OWM_HUMIDIRT);
+                pressure = mainObject.getDouble(OWM_PRESSURE);
+
+
+                JSONObject weatherArray = dayForcast.getJSONArray(OWM_WEATHER).getJSONObject(0);
+
+                weatherId = weatherArray.getInt(OWM_ID);
+                mainWather = weatherArray.getString(OWM_WEATHER_MAIN);
+                description = weatherArray.getString(OWM_DESCRIPTION);
+
+                dateText = dayForcast.getString(OWM_DT_TXT);
+
+
+                String dayInformation = dateText + description ;
+
+                Log.d("XXXX", "get data from json "  + dayInformation);
+                weatherData[i] = dayInformation;
+            }
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        return weatherData;
+    }
 }
