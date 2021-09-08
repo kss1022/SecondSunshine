@@ -1,5 +1,6 @@
 package com.example.secondsunshine;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,13 +12,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import static com.example.secondsunshine.CustomAdapter.*;
 
 public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
-    int mListItemNumber;
     final private listItemClickLisener mListItemClickLisener;
 
-    public CustomAdapter(int number, listItemClickLisener listItemClickLisener) {
-        super();
+    String[] mWeatherData;
 
-        mListItemNumber = number;
+
+    public CustomAdapter(listItemClickLisener listItemClickLisener) {
+        super();
         mListItemClickLisener = listItemClickLisener;
     }
 
@@ -39,7 +40,15 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
 
     @Override
     public int getItemCount() {
-        return mListItemNumber;
+        Log.d("CustomAdapter :" ,"getItemtCount " );
+        if(mWeatherData == null) return 0;
+        return mWeatherData.length;
+    }
+
+    public void setData(String[] data)
+    {
+        mWeatherData = data;
+        notifyDataSetChanged();
     }
 
 
@@ -56,19 +65,20 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
         }
 
         void bind(int number) {
-            listItemTextView.setText(Integer.toString(number));
+            listItemTextView.setText(mWeatherData[number]);
         }
 
 
         @Override
         public void onClick(View v) {
             int clickPosition = getAbsoluteAdapterPosition();
-            mListItemClickLisener.onClickItem(clickPosition);
+            String weatherData = mWeatherData[clickPosition];
+            mListItemClickLisener.onClickItem(clickPosition, weatherData);
         }
     }
 
     public interface listItemClickLisener {
-        void onClickItem(int number);
+        void onClickItem(int number, String data);
     }
 
 }

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        app:key="help_category"
+        app:title="weather Data Setting">
+
+        <EditTextPreference
+            app:key="@string/pref_location_key"
+            app:title="@string/pref_location_label"
+            app:defaultValue="Seoul"/>
+<!--            app:useSimpleSummaryProvider="true" />-->
+
+        <EditTextPreference
+            app:key="@string/pref_day_key"
+            app:title="@string/pref_day_label"
+            app:defaultValue="14"/>
+        <!--            app:useSimpleSummaryProvider="true" />-->
+
+
+        <ListPreference
+            app:key="@string/pref_temperature_key"
+            app:title="@string/pref_temperature_label"
+            app:entries="@array/pref_temperature_option"
+            app:entryValues="@array/pref_temperature_value"
+            app:defaultValue="@string/array_metric"/>
+<!--            app:useSimpleSummaryProvider="true"/>-->
+
+
+        <CheckBoxPreference
+            app:key="@string/pref_checkbox_key"
+            app:title="@string/pref_checkbox_label"
+            app:summaryOn="Shown"
+            app:summary="Hidden"
+            app:defaultValue="@bool/pref_show_base_default">
+        </CheckBoxPreference>
+
+<!--        <ListPreference-->
+<!--            app:key="feedback"-->
+<!--            app:summary="Report technical issues or suggest new features"-->
+<!--            app:title="Send feedback"-->
+<!--            app:fragment=".com.example.secondsunshine"/>-->
+    </PreferenceCategory>
+</PreferenceScreen>

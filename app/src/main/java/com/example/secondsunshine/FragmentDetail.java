@@ -59,6 +59,7 @@ public class FragmentDetail extends Fragment {
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(R.menu.refresh, menu);
         inflater.inflate(R.menu.share, menu);
+        inflater.inflate(R.menu.setting, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -69,8 +70,13 @@ public class FragmentDetail extends Fragment {
         switch (menuId) {
             case R.id.action_refresh:
                 actionRefresh();
+                break;
             case R.id.action_share:
                 actionShare();
+                break;
+            case R.id.action_setting:
+                Intent settingIntent = new Intent(getActivity(), SettingActicity.class);
+                startActivity(settingIntent);
                 break;
             default:
             break;
@@ -85,7 +91,7 @@ public class FragmentDetail extends Fragment {
         mToast = Toast.makeText(getActivity(), "action_search", Toast.LENGTH_LONG);
         mToast.show();
 
-        URL forecastURL = NetworkUtil.buildURL(NetworkUtil.OPENWEATHERMAP_BASE_URL);
+//        URL forecastURL = NetworkUtil.buildURL("Seoul", "metric", NetworkUtil.DAY_NUMBER);
 
 //        new WeatherTask().execute(forecastURL);
     }

@@ -14,11 +14,14 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        FragmentDetail fragmentDetail = new FragmentDetail();
-        fragmentTransaction.replace(R.id.detailfragment_container, fragmentDetail)
-                .commit();
+        if (savedInstanceState == null) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+            FragmentDetail fragmentDetail = new FragmentDetail();
+            fragmentTransaction.replace(R.id.detailfragment_container, fragmentDetail)
+                    .commit();
+        }
     }
 }

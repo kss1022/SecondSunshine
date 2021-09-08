@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">SecondSunshine</string>
+
+
+    <string name="pref_location_key" translatable="false">weatherloacation_key</string>
+    <string name="pref_location_label" >Location</string>
+
+    <string name="pref_temperature_key" translatable="false">temperatureformat_key</string>
+    <string name="pref_temperature_label" >Temperature</string>
+
+    <string name="pref_checkbox_key" translatable="false">checkbox_prefkey</string>
+    <string name="pref_checkbox_label" >CheckBox</string>
+
+    <string name="pref_day_key" translatable="false">pref_day_key</string>
+    <string name="pref_day_label">Day Num</string>
+
+
+    <string name="array_metric">Metric</string>
+    <string name="array_imperial">Imperial</string>
+
 </resources>

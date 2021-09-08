@@ -18,11 +18,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        FragmentMain fragmentMain = new FragmentMain();
-        fragmentTransaction.replace(R.id.mainfragment_container, fragmentMain)
-                .commit();
+
+        if (savedInstanceState == null) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+            FragmentMain fragmentMain = new FragmentMain();
+            fragmentTransaction.replace(R.id.mainfragment_container, fragmentMain)
+                    .commit();
+        }
     }
+
+
 }

@@ -12,6 +12,6 @@
        android:paddingBottom="15dp"
        android:layout_gravity="center"
        android:text="리스트 아이템"
-       android:textSize="30sp"/>
+       android:textSize="15sp"/>
 
 </FrameLayout>

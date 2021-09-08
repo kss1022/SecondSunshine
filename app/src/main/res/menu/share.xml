@@ -4,8 +4,8 @@
     <item
         android:id="@+id/action_share"
         android:title="share"
-        android:orderInCategory="2"
+        android:orderInCategory="9"
         android:icon="@drawable/ic_action_share"
-        app:showAsAction="always"
+        app:showAsAction="never"
         ></item>
 </menu>

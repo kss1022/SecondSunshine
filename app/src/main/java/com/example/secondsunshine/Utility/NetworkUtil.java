@@ -22,12 +22,11 @@ public class NetworkUtil {
     final static String LOG_TAG = NetworkUtil.class.getSimpleName();
 
 
-
-
 //    https://api.openweathermap.org/data/2.5/forecast?q=Seoul&mode=json&units=metric&cnt=14&appid=cc5e1980ddf504a11985dc39a47850bf
 
     public final static int DAY_NUMBER = 14;
-    public final static String OPENWEATHERMAP_BASE_URL =  "https://api.openweathermap.org/data/2.5/forecast";
+
+    public final static String OPENWEATHERMAP_BASE_URL = "https://api.openweathermap.org/data/2.5/forecast";
     final static String PARAM_LOCATION = "q";
     final static String PARAM_MODE = "mode";
     final static String PARAM_UNITS = "units";
@@ -36,13 +35,12 @@ public class NetworkUtil {
 
 
     // String url -> Uri -> URL
-    public static URL buildURL(String url)
-    {
-        Uri builtUri = Uri.parse(url).buildUpon()
-                .appendQueryParameter(PARAM_LOCATION, "Seoul")
+    public static URL buildURL(String location, String units, int num_day) {
+        Uri builtUri = Uri.parse(OPENWEATHERMAP_BASE_URL).buildUpon()
+                .appendQueryParameter(PARAM_LOCATION, location)
                 .appendQueryParameter(PARAM_MODE, "json")
-                .appendQueryParameter(PARAM_UNITS, "metric")
-                .appendQueryParameter(PARAM_DAY, Integer.toString(DAY_NUMBER))
+                .appendQueryParameter(PARAM_UNITS, units)
+                .appendQueryParameter(PARAM_DAY, Integer.toString(num_day))
                 .appendQueryParameter(PARAM_KEY, "cc5e1980ddf504a11985dc39a47850bf")
                 .build();
 
@@ -55,15 +53,14 @@ public class NetworkUtil {
         }
 
 
-        Log.d(LOG_TAG, "build Url : " + builtUri );
+        Log.d(LOG_TAG, "build Url : " + builtUri);
         return builtUrl;
     }
 
 
     //URL -> json 데이터 가져오기
-    public static String getDataFromURL(URL url) throws  IOException
-    {
-        HttpURLConnection  httpURLConnection = (HttpURLConnection)url.openConnection();
+    public static String getDataFromURL(URL url) throws IOException {
+        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
         httpURLConnection.connect();
 
         InputStream inputStream = new BufferedInputStream(httpURLConnection.getInputStream());
@@ -73,25 +70,16 @@ public class NetworkUtil {
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String line;
 
-        for(int ch; (ch = inputStream.read()) != -1;)
-        {
-            stringBuffer.append((char)ch);
+        for (int ch; (ch = inputStream.read()) != -1; ) {
+            stringBuffer.append((char) ch);
         }
 
-        String  data = stringBuffer.toString();
+        String data = stringBuffer.toString();
 
-        Log.d(LOG_TAG ,"getDataFromUL : " + data);
+        Log.d(LOG_TAG, "getDataFromUL : " + data);
 
         return data;
     }
-
-
-
-
-
-
-
-
 
 
     final static String OWM_LIST = "list";
@@ -108,8 +96,8 @@ public class NetworkUtil {
     final static String OWM_DT_TXT = "dt_txt";
 
     //json 데이터에서 원하는 정보를 뺴온다.
-    public static String[] getDataFromJson(String JsonData) {
-        String weatherData[] = new String[DAY_NUMBER];
+    public static String[] getDataFromJson(String JsonData, int dataNum) {
+        String weatherData[] = new String[dataNum];
 
 
         String utcTime;
@@ -158,9 +146,9 @@ public class NetworkUtil {
                 dateText = dayForcast.getString(OWM_DT_TXT);
 
 
-                String dayInformation = dateText + description ;
+                String dayInformation = dateText + " - " + description;
 
-                Log.d("XXXX", "get data from json "  + dayInformation);
+                Log.d(LOG_TAG, "get data from json " + dayInformation);
                 weatherData[i] = dayInformation;
             }
 
