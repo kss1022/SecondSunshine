@@ -1,5 +1,6 @@
 package com.example.secondsunshine;
 
+import android.database.Cursor;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,12 +10,16 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.secondsunshine.Data.WeatherEntry;
+
+import java.util.List;
+
 import static com.example.secondsunshine.CustomAdapter.*;
 
 public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
     final private listItemClickLisener mListItemClickLisener;
 
-    String[] mWeatherData;
+    List<WeatherEntry> mWeatherEntryList;
 
 
     public CustomAdapter(listItemClickLisener listItemClickLisener) {
@@ -41,13 +46,21 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
     @Override
     public int getItemCount() {
         Log.d("CustomAdapter :" ,"getItemtCount " );
-        if(mWeatherData == null) return 0;
-        return mWeatherData.length;
+
+
+        if(mWeatherEntryList == null) return 0;
+        return mWeatherEntryList.size();
     }
 
-    public void setData(String[] data)
+    public List<WeatherEntry> getmWeathers()
     {
-        mWeatherData = data;
+        return mWeatherEntryList;
+    }
+
+
+    public void setWeatherEntryList(List<WeatherEntry> weatherEntryList)
+    {
+        mWeatherEntryList = weatherEntryList;
         notifyDataSetChanged();
     }
 
@@ -65,20 +78,32 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
         }
 
         void bind(int number) {
-            listItemTextView.setText(mWeatherData[number]);
+
+
+            WeatherEntry weatherData =  mWeatherEntryList.get(number);
+
+            long date =  weatherData.getTime();
+            String description = weatherData.getDescription();
+            double temp_max = weatherData.getMax_temp();
+            double temp_min = weatherData.getMin_temp();
+
+
+            String weatherSummary  = "data :  "+  date  + description + "   " + temp_max + "  /  "  + temp_min;
+
+            listItemTextView.setText(weatherSummary);
         }
 
 
         @Override
         public void onClick(View v) {
-            int clickPosition = getAbsoluteAdapterPosition();
-            String weatherData = mWeatherData[clickPosition];
-            mListItemClickLisener.onClickItem(clickPosition, weatherData);
+            int elementId = mWeatherEntryList.get(getAbsoluteAdapterPosition()).getId();
+
+            mListItemClickLisener.onClickItem(elementId);
         }
     }
 
     public interface listItemClickLisener {
-        void onClickItem(int number, String data);
+        void onClickItem(int id);
     }
 
 }

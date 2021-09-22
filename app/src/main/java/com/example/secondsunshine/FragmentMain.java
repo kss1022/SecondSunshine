@@ -3,6 +3,8 @@ package com.example.secondsunshine;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -23,29 +25,43 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.AsyncTaskLoader;
+import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.secondsunshine.Data.AppDataBase;
+import com.example.secondsunshine.Data.AppExcutors;
+import com.example.secondsunshine.Data.WeatherContract;
+import com.example.secondsunshine.Data.WeatherEntry;
 import com.example.secondsunshine.Utility.NetworkUtil;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
+import java.util.List;
 
 public class FragmentMain extends Fragment
         implements CustomAdapter.listItemClickLisener,
-        LoaderManager.LoaderCallbacks<String> ,
+        LoaderManager.LoaderCallbacks<Cursor>,
         SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private  static final String LOG_TAG = FragmentMain.class.getSimpleName();
+    private static final String LOG_TAG = FragmentMain.class.getSimpleName();
 
 
     private static final int LOADER_ID = 22;
     private static final String LOADER_BUNDLE_URL_KEY = "search_query_key";
-    private static final String SAVEDINSTANCE_KEY = "search_query_key";
+
+
+    public static final int INDEX_WEATHER_DATE = 0;
+    public static final int INDEX_WEATHER_DESCRIPTION = 1;
+    public static final int INDEX_WEATHER_MAX_TEMP = 2;
+    public static final int INDEX_WEATHER_MIN_TEMP = 3;
 
 
     RecyclerView mRecylcerView;
@@ -56,10 +72,10 @@ public class FragmentMain extends Fragment
     ProgressBar mProgressBar_LoadingBar;
 
     RelativeLayout mRelativeLayout;
-    TextView    mTextView_TestLoaderData;
-    TextView    mTextView_TestLocationSetting;
-    TextView    mTextView_TestDaySetting;
-    TextView    mTextView_TestTemperatureSetting;
+
+    TextView mTextView_TestLocationSetting;
+    TextView mTextView_TestDaySetting;
+    TextView mTextView_TestTemperatureSetting;
 
     Toast mToast;
 
@@ -68,7 +84,9 @@ public class FragmentMain extends Fragment
     int mDaySetting;
     String mTemperatrueSetting;
 
-    String[] mWeatherData = new String[mDaySetting];
+    AppDataBase mDatabase;
+    Context mContext;
+
 
 
     @Override
@@ -77,7 +95,6 @@ public class FragmentMain extends Fragment
         setHasOptionsMenu(true);
     }
 
-    Context mContext;
 
     @Nullable
     @Override
@@ -86,48 +103,47 @@ public class FragmentMain extends Fragment
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         mContext = getActivity();
 
-        mRecylcerView = rootView.findViewById(R.id.recyclerview_main);
-        mProgressBar_LoadingBar = rootView.findViewById(R.id.pb_main);
+        InitView(rootView);
+
+
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                AppExcutors.getInstance().distIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        int position = viewHolder.getAbsoluteAdapterPosition();
+                        List<WeatherEntry> weathers = mCustomAdapter.getmWeathers();
+                        mDatabase.weatherDao().deleteWeather(weathers.get(position));
+                        retrieveTask();
+                    }
+                });
+            }
+        }).attachToRecyclerView(mRecylcerView);
 
 
 
-        mRelativeLayout = rootView.findViewById(R.id.rl_testData);
-        mTextView_TestLoaderData = rootView.findViewById(R.id.test_loaderData);
-        mTextView_TestLocationSetting = rootView.findViewById(R.id.tv_main_location);
-        mTextView_TestDaySetting = rootView.findViewById(R.id.tv_main_day);
-        mTextView_TestTemperatureSetting = rootView.findViewById(R.id.tv_main_temperature);
-
-
-        mLayoutManager = new LinearLayoutManager(getActivity());
-
-        mRecylcerView.setLayoutManager(mLayoutManager);
-        mRecylcerView.setHasFixedSize(true);
 
         mCustomAdapter = new CustomAdapter(this);
-
         mRecylcerView.setAdapter(mCustomAdapter);
 
-        if(savedInstanceState!= null)
-        {
-            if(savedInstanceState.containsKey(SAVEDINSTANCE_KEY))
-            {
+        mDatabase = AppDataBase.getInstance(mContext);
 
-                String savedString = savedInstanceState.getString(SAVEDINSTANCE_KEY);
-                mTextView_TestLoaderData.setText(savedString);
-
-                if(savedString == null || savedString.equals(""))
-                {
-                    mTextView_TestLoaderData.setText("왜 데이터가없을깡?");
-                }
-            }
-        }
 
 //      설정 데이터를 가져와 설절한다
         getSettingData();
+        mProgressBar_LoadingBar.setVisibility(View.INVISIBLE);
 
-        LoaderManager.getInstance(this).initLoader(LOADER_ID, null, this);
+//        LoaderManager.getInstance(this).initLoader(LOADER_ID, null, this);
         return rootView;
     }
+
+
 
 
     @Override
@@ -168,95 +184,55 @@ public class FragmentMain extends Fragment
         return super.onOptionsItemSelected(item);
     }
 
+
+    
+//    TODO 로더 설정해주기
     @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
+    public Loader<Cursor> onCreateLoader(int id, final Bundle args) {
 
-        outState.putString(SAVEDINSTANCE_KEY , (mTextView_TestLoaderData.getText()).toString());
-    }
+        switch (id) {
+            case LOADER_ID:
+                Uri forecastQueryUri = WeatherContract.WeatherEntry.CONTENT_URI;
+                /* Sort order: Ascending by date */
+                String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
+                /*
+                 * A SELECTION in SQL declares which rows you'd like to return. In our case, we
+                 * want all weather data from today onwards that is stored in our weather table.
+                 * We created a handy method to do that in our WeatherEntry class.
+                 */
 
-    @Override
-    public Loader<String> onCreateLoader(int id, final Bundle args) {
-        return new AsyncTaskLoader<String>(mContext) {
-
-            String deliverData;
-
-
-            @Override
-            protected void onStartLoading() {
-                super.onStartLoading();
-                if (args == null) {
-                    return;
-                }
-                if(deliverData != null)
-                {
-                    deliverResult(deliverData);
-                }
-                else {
-                    mProgressBar_LoadingBar.setVisibility(View.VISIBLE);
-                    forceLoad();
-                }
-            }
-
-
-            @Override
-            public String loadInBackground() {
-                //Bundle에서 받은 URL에서 JSON 데이터를 반환해준다.
-                String forecastURL = args.getString(LOADER_BUNDLE_URL_KEY);
-
-                if (forecastURL == null || TextUtils.isEmpty(forecastURL)) {
-                    return null;
-                } else {
-                    try {
-                        URL newURL = new URL(forecastURL);
-
-                        return NetworkUtil.getDataFromURL(newURL);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                }
-            }
-
-
-            @Override
-            public void deliverResult(@Nullable String data) {
-                deliverData = data;
-                super.deliverResult(data);
-            }
-        };
-    }
-
-    @Override
-    public void onLoadFinished(@NonNull Loader<String> loader, String data) {
-        mProgressBar_LoadingBar.setVisibility(View.INVISIBLE);
-
-        //JSON 데이터를 통해 날씨 정보를 가져온다.
-        if(data != null && !data.equals(""))
-        {
-            mWeatherData = NetworkUtil.getDataFromJson(data, mDaySetting);
-            mCustomAdapter.setData(mWeatherData);
-            mTextView_TestLoaderData.setText(mWeatherData[0]);
+                return new CursorLoader(mContext,
+                        forecastQueryUri,
+                        null,
+                        null,
+                        null,
+                        sortOrder);
+            default:
+                throw new RuntimeException("Loader Not Implemented" + id);
         }
-        else
-        {
-            if(mToast!= null)
-            {
-                mToast.cancel();
-            }
-            mToast = Toast.makeText(mContext, "No Data From URL", Toast.LENGTH_LONG);
-            mToast.show();
+
+
+    }
+
+    @Override
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+
+//        mCustomAdapter.swapCursor(mCursor);
+
+        if (data.getCount() != 0) {
+            mProgressBar_LoadingBar.setVisibility(View.INVISIBLE);
         }
-    }
-
-    @Override
-    public void onLoaderReset(@NonNull Loader<String> loader) {
 
     }
 
+    @Override
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+//        mCustomAdapter.swapCursor(null);
+    }
+
 
     @Override
-    public void onClickItem(int number, String data){
+    public void onClickItem(int number) {
 
         if (mToast != null) {
             mToast.cancel();
@@ -268,64 +244,110 @@ public class FragmentMain extends Fragment
 
 
         Intent intent = new Intent(getActivity(), DetailActivity.class);
-        intent.putExtra(Intent.EXTRA_TEXT, data);
+        intent.putExtra(Intent.EXTRA_TEXT, number);
         startActivity(intent);
     }
 
 
+    //뷰 설정해주기
+    private void InitView(View rootView) {
+        mRecylcerView = rootView.findViewById(R.id.recyclerview_main);
+        mProgressBar_LoadingBar = rootView.findViewById(R.id.pb_main);
 
+
+        mRelativeLayout = rootView.findViewById(R.id.rl_testData);
+        mTextView_TestLocationSetting = rootView.findViewById(R.id.tv_main_location);
+        mTextView_TestDaySetting = rootView.findViewById(R.id.tv_main_day);
+        mTextView_TestTemperatureSetting = rootView.findViewById(R.id.tv_main_temperature);
+
+        mLayoutManager = new LinearLayoutManager(getActivity());
+
+
+        mRecylcerView.setLayoutManager(mLayoutManager);
+        mRecylcerView.setHasFixedSize(true);
+
+        DividerItemDecoration decoration = new DividerItemDecoration(mContext.getApplicationContext(),
+                DividerItemDecoration.VERTICAL);
+        mRecylcerView.addItemDecoration(decoration);
+    }
+
+    // DB Test
     private void actionRefresh() {
         mToast = Toast.makeText(mContext, "action_search", Toast.LENGTH_LONG);
         mToast.show();
 
 
-        //URL을 만들어서 Bundle에 넘겨준다
+        WeatherEntry weatherEntry = new WeatherEntry(
+                2000,
+                "오늘의 날씨!!!",
+                111,
+                32.1,
+                32.3,
+                65,
+                65.2,
+                new Date()
+        );
 
+        AppExcutors.getInstance().distIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                mDatabase.weatherDao().deleteAllWeather();
 
-        URL forecastURL = NetworkUtil.buildURL(mLocationSetting, mTemperatrueSetting, mDaySetting);
+                mDatabase.weatherDao().insertWeather(weatherEntry);
+                mDatabase.weatherDao().insertWeather(weatherEntry);
+                mDatabase.weatherDao().insertWeather(weatherEntry);
+                mDatabase.weatherDao().insertWeather(weatherEntry);
+                mDatabase.weatherDao().insertWeather(weatherEntry);
+                mDatabase.weatherDao().insertWeather(weatherEntry);
+                mDatabase.weatherDao().insertWeather(weatherEntry);
+                mDatabase.weatherDao().insertWeather(weatherEntry);
+                List<WeatherEntry> testData =  mDatabase.weatherDao().loadAllWeather();
+                Log.d(LOG_TAG, testData.get(0).getDescription());
 
-        Bundle bundle = new Bundle();
-        bundle.putString(LOADER_BUNDLE_URL_KEY, forecastURL.toString());
+            }
+        });
 
-        LoaderManager loaderManager = LoaderManager.getInstance(this);
-        Loader<String> forecastLoader = loaderManager.getLoader(LOADER_ID);
+        retrieveTask();
 
-        if(forecastLoader == null)
-        {
-            loaderManager.initLoader(LOADER_ID, bundle, this);
-        }
-        else
-        {
-            loaderManager.restartLoader(LOADER_ID, bundle, this);
-        }
-
-        mCustomAdapter.setData(mWeatherData);
     }
 
 
+//DB에서 Entry를 가져와 Adapter 데이터를 세팅해줌
+    private void retrieveTask() {
+        AppExcutors.getInstance().distIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                final List<WeatherEntry> testData =  mDatabase.weatherDao().
+                        loadAllWeather();
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mCustomAdapter.setWeatherEntryList(testData);
+                    }
+                });
+            }
+        });
+    }
 
 
-    private  void getSettingData()
-    {
+    //설정한 정보들을 SharedPreferences통해 가져온다
+    private void getSettingData() {
         SharedPreferences prefs = PreferenceManager.
                 getDefaultSharedPreferences(mContext);
 
-        mLocationSetting = prefs.getString(mContext.getString( R.string.pref_location_key), "Default");
-        mDaySetting = Integer.parseInt( prefs.getString(mContext.getString( R.string.pref_day_key), "14"));
-        mTemperatrueSetting = prefs.getString(mContext.getString( R.string.pref_temperature_key), "Default");
-        Boolean checkboxStatus = prefs.getBoolean(mContext.getString( R.string.pref_checkbox_key), getResources().getBoolean(R.bool.pref_show_base_default));
+        mLocationSetting = prefs.getString(mContext.getString(R.string.pref_location_key), "Default");
+        mDaySetting = Integer.parseInt(prefs.getString(mContext.getString(R.string.pref_day_key), "14"));
+        mTemperatrueSetting = prefs.getString(mContext.getString(R.string.pref_temperature_key), "Default");
+        Boolean checkboxStatus = prefs.getBoolean(mContext.getString(R.string.pref_checkbox_key), getResources().getBoolean(R.bool.pref_show_base_default));
 
         mTextView_TestLocationSetting.setText(mLocationSetting);
-        mTextView_TestDaySetting.setText( Integer.toString(mDaySetting) );
+        mTextView_TestDaySetting.setText(Integer.toString(mDaySetting));
         mTextView_TestTemperatureSetting.setText(mTemperatrueSetting);
 
 
-        if(checkboxStatus)
-        {
+        if (checkboxStatus) {
             mRelativeLayout.setVisibility(View.VISIBLE);
-        }
-        else
-        {
+        } else {
             mRelativeLayout.setVisibility(View.INVISIBLE);
         }
 
@@ -334,39 +356,32 @@ public class FragmentMain extends Fragment
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if(key.equals( getString(R.string.pref_location_key)))
-        {
+        if (key.equals(getString(R.string.pref_location_key))) {
             mLocationSetting = sharedPreferences.getString(key,
                     "default");
             mTextView_TestLocationSetting.setText(mLocationSetting);
         }
 
-        if(key.equals( getString(R.string.pref_day_key)))
-        {
-            mDaySetting =  Integer.parseInt( sharedPreferences.getString(key,
+        if (key.equals(getString(R.string.pref_day_key))) {
+            mDaySetting = Integer.parseInt(sharedPreferences.getString(key,
                     "default"));
-            mTextView_TestDaySetting.setText( Integer.toString(mDaySetting));
+            mTextView_TestDaySetting.setText(Integer.toString(mDaySetting));
         }
 
-        if(key.equals( getString(R.string.pref_temperature_key)))
-        {
+        if (key.equals(getString(R.string.pref_temperature_key))) {
             mTextView_TestTemperatureSetting.setText(sharedPreferences.getString(key,
                     "default"));
         }
 
 
-        if(key.equals( getString(R.string.pref_checkbox_key)))
-        {
+        if (key.equals(getString(R.string.pref_checkbox_key))) {
 
             Boolean checkboxStatus = sharedPreferences.getBoolean(key,
                     getResources().getBoolean(R.bool.pref_show_base_default));
 
-            if(checkboxStatus)
-            {
+            if (checkboxStatus) {
                 mRelativeLayout.setVisibility(View.VISIBLE);
-            }
-            else
-            {
+            } else {
                 mRelativeLayout.setVisibility(View.INVISIBLE);
             }
         }

@@ -100,7 +100,9 @@ public class NetworkUtil {
         String weatherData[] = new String[dataNum];
 
 
-        String utcTime;
+
+        long utcTime;
+        String localTime;
 
         double high;
         double low;
@@ -127,7 +129,8 @@ public class NetworkUtil {
             for (int i = 0; i < jsonLength; i++) {
                 dayForcast = jsonArray.getJSONObject(i);
 
-                utcTime = TimeUtil.convertUtcToLocal(dayForcast.getString(OWM_DT));
+                utcTime = dayForcast.getLong(OWM_DT);
+                localTime = TimeUtil.convertUtcToLocal(Long.toString(utcTime) );
 
                 JSONObject mainObject = dayForcast.getJSONObject(OWM_MAIN);
 
