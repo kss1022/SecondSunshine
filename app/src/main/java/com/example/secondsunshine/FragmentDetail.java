@@ -8,6 +8,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,6 +16,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ShareCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.example.secondsunshine.Data.AppDataBase;
 import com.example.secondsunshine.Data.AppExcutors;
@@ -22,6 +27,7 @@ import com.example.secondsunshine.Data.WeatherEntry;
 import com.example.secondsunshine.Utility.NetworkUtil;
 
 import java.net.URL;
+import java.util.Date;
 
 public class FragmentDetail extends Fragment {
 
@@ -29,7 +35,13 @@ public class FragmentDetail extends Fragment {
     private static final String INSTANCE_WEATEHR_ID = "instanceWeatherId";
 
     private AppDataBase mDatabase;
-    TextView mTextView;
+
+    TextView mTextView_date;
+    TextView mTextView_description;
+    TextView mTextView_maxTemp;
+    TextView mTextView_minTemp;
+    Button mButton_changeData;
+
     Toast mToast;
 
 
@@ -49,8 +61,18 @@ public class FragmentDetail extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
-        mTextView = rootView.findViewById(R.id.tv_detail);
+        mTextView_date = rootView.findViewById(R.id.tv_detail_date);
+        mTextView_description = rootView.findViewById(R.id.tv_detail_description);
+        mTextView_maxTemp = rootView.findViewById(R.id.tv_detail_max_temp);
+        mTextView_minTemp = rootView.findViewById(R.id.tv_detail_min_temp);
+        mButton_changeData = rootView.findViewById(R.id.bt_detail_modify);
 
+        mButton_changeData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                actionChange();
+            }
+        });
 
         mDatabase = AppDataBase.getInstance(getContext().getApplicationContext());
 
@@ -61,30 +83,26 @@ public class FragmentDetail extends Fragment {
         Intent intent = getActivity().getIntent();
 
 
-        if (intent!= null && intent.hasExtra(Intent.EXTRA_TEXT)) {
+        if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
             mWeatherId = intent.getIntExtra(Intent.EXTRA_TEXT, DEFAULT_WEATEHR_ID);
 
-            AppExcutors.getInstance().distIO().execute(new Runnable() {
+
+            AddTaskViewModelfactory factroy = new AddTaskViewModelfactory(mDatabase, mWeatherId);
+            final AddTaskViewModel viewModel = ViewModelProviders.of(this, factroy)
+                    .get(AddTaskViewModel.class);
+
+
+            viewModel.getWeather().observe(getActivity(), new Observer<WeatherEntry>() {
                 @Override
-                public void run() {
-                    final WeatherEntry weatherEntry = mDatabase.weatherDao().loadWeatherById(mWeatherId);
-
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        populateUi(weatherEntry);
-                    }
-                });
-
+                public void onChanged(WeatherEntry weatherEntry) {
+                    viewModel.getWeather().removeObserver(this);
+                    populateUi(weatherEntry);
                 }
             });
         }
 
-
         return rootView;
     }
-
-
 
 
     @Override
@@ -142,7 +160,7 @@ public class FragmentDetail extends Fragment {
 
         String mimeType = "text/plain";
         String title = "Learning How to Share";
-        String textToShare = (mTextView.getText()).toString();
+        String textToShare = (mTextView_description.getText()).toString();
 
 
         ShareCompat.IntentBuilder.from(getActivity())
@@ -153,12 +171,46 @@ public class FragmentDetail extends Fragment {
     }
 
 
+    private void actionChange() {
+        long date = Long.parseLong( mTextView_date.getText().toString());
+        String description = mTextView_description.getText().toString();
+        double temp_max = Double.parseDouble(mTextView_maxTemp.getText().toString()) ;
+        double temp_min = Double.parseDouble(mTextView_minTemp.getText().toString()) ;
+
+        WeatherEntry weather = new WeatherEntry(
+                date,
+                description,
+                111,
+                temp_max,
+                temp_min,
+                65,
+                65.2,
+                new Date()
+        );
+
+
+        AppExcutors.getInstance().distIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                weather.setId(mWeatherId);
+                mDatabase.weatherDao().updateWeather(weather);
+            }
+        });
+
+    }
+
+
     private void populateUi(WeatherEntry weatherEntry) {
-        long date =  weatherEntry.getTime();
+        long date = weatherEntry.getTime();
         String description = weatherEntry.getDescription();
         double temp_max = weatherEntry.getMax_temp();
         double temp_min = weatherEntry.getMin_temp();
-        String weatherSummary  = "data :  "+  date  + description + "   " + temp_max + "  /  "  + temp_min;
-        mTextView.setText(weatherSummary);
+        mTextView_date.setText(Long.toString(date));
+        mTextView_description.setText(description);
+        mTextView_maxTemp.setText(Double.toString(temp_max));
+        mTextView_minTemp.setText(Double.toString(temp_min));
     }
+
+
+
 }

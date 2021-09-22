@@ -23,6 +23,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.AsyncTaskLoader;
 import androidx.loader.content.CursorLoader;
@@ -120,7 +123,6 @@ public class FragmentMain extends Fragment
                         int position = viewHolder.getAbsoluteAdapterPosition();
                         List<WeatherEntry> weathers = mCustomAdapter.getmWeathers();
                         mDatabase.weatherDao().deleteWeather(weathers.get(position));
-                        retrieveTask();
                     }
                 });
             }
@@ -140,6 +142,10 @@ public class FragmentMain extends Fragment
         mProgressBar_LoadingBar.setVisibility(View.INVISIBLE);
 
 //        LoaderManager.getInstance(this).initLoader(LOADER_ID, null, this);
+
+
+        retrieveTask();
+
         return rootView;
     }
 
@@ -237,7 +243,7 @@ public class FragmentMain extends Fragment
         if (mToast != null) {
             mToast.cancel();
         }
-        String toastMesssage = "Click positon : " + number;
+        String toastMesssage = "Click DataBase Id : " + number;
 
         mToast = Toast.makeText(mContext, toastMesssage, Toast.LENGTH_LONG);
         mToast.show();
@@ -301,9 +307,6 @@ public class FragmentMain extends Fragment
                 mDatabase.weatherDao().insertWeather(weatherEntry);
                 mDatabase.weatherDao().insertWeather(weatherEntry);
                 mDatabase.weatherDao().insertWeather(weatherEntry);
-                List<WeatherEntry> testData =  mDatabase.weatherDao().loadAllWeather();
-                Log.d(LOG_TAG, testData.get(0).getDescription());
-
             }
         });
 
@@ -314,17 +317,13 @@ public class FragmentMain extends Fragment
 
 //DB에서 Entry를 가져와 Adapter 데이터를 세팅해줌
     private void retrieveTask() {
-        AppExcutors.getInstance().distIO().execute(new Runnable() {
+        MainViewModel viewModel = ViewModelProviders.of(this).
+                get(MainViewModel.class);
+        viewModel.getWeathers().observe(getActivity(), new Observer<List<WeatherEntry>>() {
             @Override
-            public void run() {
-                final List<WeatherEntry> testData =  mDatabase.weatherDao().
-                        loadAllWeather();
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mCustomAdapter.setWeatherEntryList(testData);
-                    }
-                });
+            public void onChanged(List<WeatherEntry> weatherEntries) {
+                Log.d(LOG_TAG, "Update list of weathers from LiveData in ViewModel");
+                mCustomAdapter.setWeatherEntryList(weatherEntries);
             }
         });
     }

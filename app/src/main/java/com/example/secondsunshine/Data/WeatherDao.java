@@ -1,5 +1,6 @@
 package com.example.secondsunshine.Data;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -13,7 +14,7 @@ import java.util.List;
 public interface WeatherDao {
 
     @Query("SELECT * FROM weather ORDER BY time")
-    List<WeatherEntry> loadAllWeather();
+    LiveData<List<WeatherEntry>> loadAllWeather();
 
     @Insert
     void insertWeather(WeatherEntry weatherEntry);
@@ -29,7 +30,6 @@ public interface WeatherDao {
     void deleteAllWeather();
 
 
-
     @Query("SELECT * FROM weather WHERE id = :id")
-    WeatherEntry loadWeatherById(int id);
+    LiveData<WeatherEntry> loadWeatherById(int id);
 }

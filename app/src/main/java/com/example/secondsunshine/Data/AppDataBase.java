@@ -29,8 +29,7 @@ public abstract class AppDataBase extends RoomDatabase {
                 sInstance = Room.databaseBuilder(context.getApplicationContext(),
                         AppDataBase.class, AppDataBase.DATABASE_NAME)
 
-//                       TODO Test용으로 메인스레드에서 실행되게 설정해준다. 나중에 제거해야함함
-                       .allowMainThreadQueries()
+
                         .build();
             }
         }

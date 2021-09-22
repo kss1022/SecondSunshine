@@ -45,9 +45,6 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
 
     @Override
     public int getItemCount() {
-        Log.d("CustomAdapter :" ,"getItemtCount " );
-
-
         if(mWeatherEntryList == null) return 0;
         return mWeatherEntryList.size();
     }
