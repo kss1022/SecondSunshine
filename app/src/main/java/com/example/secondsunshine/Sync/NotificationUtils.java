@@ -14,7 +14,6 @@ import android.os.Build;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.secondsunshine.FragmentMain;
 import com.example.secondsunshine.MainActivity;
 import com.example.secondsunshine.R;
 
@@ -59,7 +58,7 @@ public class NotificationUtils {
     }
 
     private static PendingIntent contentIntent(Context context) {
-        Intent startActivityIntent = new Intent(context, FragmentMain.class);
+        Intent startActivityIntent = new Intent(context, MainActivity.class);
 
         return PendingIntent.getActivity(
                 context,

@@ -2,54 +2,47 @@ package com.example.secondsunshine.Sync;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
+
+
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.example.secondsunshine.Data.AppDataBase;
-import com.firebase.jobdispatcher.Constraint;
-import com.firebase.jobdispatcher.Driver;
-import com.firebase.jobdispatcher.FirebaseJobDispatcher;
-import com.firebase.jobdispatcher.GooglePlayDriver;
-import com.firebase.jobdispatcher.Job;
-import com.firebase.jobdispatcher.Lifetime;
-import com.firebase.jobdispatcher.RetryStrategy;
-import com.firebase.jobdispatcher.Trigger;
+import com.example.secondsunshine.Data.AppExcutors;
+
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
 public class SyncUtils {
-
-    private static final int SYNC_INTERVAL_MINUTES = 1;
-    private static final int SYNC_INTERVAL_SECONDS = (int) TimeUnit.MINUTES.
-            toSeconds(SYNC_INTERVAL_MINUTES);
-    private static final int SYNC_FLEXTIME_SECONDS = SYNC_INTERVAL_SECONDS;
-
-
-    private static final String SUNSHINE_SYNC_TAG = "sunshine-sync";
-
     private static boolean sInitialized;
 
 
-    public static void schedualeWatherUpdate(@NotNull final Context context)
+    synchronized  static void schedualeWatherUpdate(@NotNull final Context context)
     {
-        Driver driver =  new GooglePlayDriver(context);
-        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
+        Constraints constraints  = new Constraints.Builder()
+                    // The Worker needs Network connectivity
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build();
 
-        Job myJob = dispatcher.newJobBuilder()
-                .setService(WeatherFirebaseJobService.class)
-                .setTag(SUNSHINE_SYNC_TAG)
-                .setConstraints(
-                        Constraint.ON_ANY_NETWORK
-                )
-                .setLifetime(Lifetime.FOREVER)
-                .setRecurring(true)
-                .setTrigger(Trigger.executionWindow(10,
-                        15))
-                .setReplaceCurrent(true)
-                .build();
+        OneTimeWorkRequest request =
+                // Tell which work to execute
+                new OneTimeWorkRequest.Builder(WeatherLisenableWorker.class)
+                        // Sets the input data for the ListenableWorker
+                        // If you want to delay the start of work by 60 seconds
+                        .setInitialDelay(60, TimeUnit.SECONDS)
+                        // Set a backoff criteria to be used when retry-ing
+                        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30000, TimeUnit.MILLISECONDS)
+                        // Set additional constraints
+                        .setConstraints(constraints)
+                        .build();
 
-        dispatcher.schedule(myJob);
+        WorkManager.getInstance(context).enqueue( request);
     }
 
 
@@ -61,20 +54,16 @@ public class SyncUtils {
 
         schedualeWatherUpdate(context);
 
-        new AsyncTask<Void, Void, Void>() {
+        AppExcutors.getInstance().distIO().execute(new Runnable() {
             @Override
-            protected Void doInBackground(Void... voids) {
-
+            public void run() {
                 AppDataBase dataBase = AppDataBase.getInstance(context);
 
                 if ( !dataBase.weatherDao().isExist()) {
                     startImmediateSync(context);
                 }
-
-                return null;
             }
-        }.execute();
-
+        });
     }
 
     public static void startImmediateSync(@NotNull Context context) {
