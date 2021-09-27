@@ -49,11 +49,9 @@ dependencies {
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
-    def lifecycle_version = "2.4.0-beta01"
-    def arch_version = "2.1.0"
 
 
 
     implementation "android.arch.lifecycle:extensions:1.1.0"
-
+    implementation 'com.firebase:firebase-jobdispatcher:0.8.6'
 }

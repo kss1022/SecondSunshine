@@ -17,5 +17,8 @@
 
     <string name="array_metric">Metric</string>
     <string name="array_imperial">Imperial</string>
+    <string name="NOTIFIVATION_CHANNEL">NOTIFICATION_CHANNEL_NAME</string>
+    <string name="update_weatehr_notification_title">setContentText</string>
+    <string name="update_weatehr_notification_body">setStyle</string>
 
 </resources>

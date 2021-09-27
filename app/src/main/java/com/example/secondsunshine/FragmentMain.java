@@ -41,6 +41,7 @@ import com.example.secondsunshine.Data.AppDataBase;
 import com.example.secondsunshine.Data.AppExcutors;
 import com.example.secondsunshine.Data.WeatherContract;
 import com.example.secondsunshine.Data.WeatherEntry;
+import com.example.secondsunshine.Sync.SyncUtils;
 import com.example.secondsunshine.Utility.NetworkUtil;
 
 import java.io.IOException;
@@ -51,7 +52,6 @@ import java.util.List;
 
 public class FragmentMain extends Fragment
         implements CustomAdapter.listItemClickLisener,
-        LoaderManager.LoaderCallbacks<Cursor>,
         SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String LOG_TAG = FragmentMain.class.getSimpleName();
@@ -146,6 +146,9 @@ public class FragmentMain extends Fragment
 
         retrieveTask();
 
+        SyncUtils.initialize(mContext);
+
+
         return rootView;
     }
 
@@ -191,50 +194,7 @@ public class FragmentMain extends Fragment
     }
 
 
-    
-//    TODO 로더 설정해주기
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, final Bundle args) {
 
-        switch (id) {
-            case LOADER_ID:
-                Uri forecastQueryUri = WeatherContract.WeatherEntry.CONTENT_URI;
-                /* Sort order: Ascending by date */
-                String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
-                /*
-                 * A SELECTION in SQL declares which rows you'd like to return. In our case, we
-                 * want all weather data from today onwards that is stored in our weather table.
-                 * We created a handy method to do that in our WeatherEntry class.
-                 */
-
-                return new CursorLoader(mContext,
-                        forecastQueryUri,
-                        null,
-                        null,
-                        null,
-                        sortOrder);
-            default:
-                throw new RuntimeException("Loader Not Implemented" + id);
-        }
-
-
-    }
-
-    @Override
-    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
-
-//        mCustomAdapter.swapCursor(mCursor);
-
-        if (data.getCount() != 0) {
-            mProgressBar_LoadingBar.setVisibility(View.INVISIBLE);
-        }
-
-    }
-
-    @Override
-    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
-//        mCustomAdapter.swapCursor(null);
-    }
 
 
     @Override
@@ -310,7 +270,7 @@ public class FragmentMain extends Fragment
             }
         });
 
-        retrieveTask();
+//        retrieveTask();
 
     }
 
@@ -329,6 +289,8 @@ public class FragmentMain extends Fragment
     }
 
 
+
+    //TODO  SharedPreferences를 사용하는 헬퍼 클래스를 만들어준다
     //설정한 정보들을 SharedPreferences통해 가져온다
     private void getSettingData() {
         SharedPreferences prefs = PreferenceManager.

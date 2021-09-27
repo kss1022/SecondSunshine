@@ -4,6 +4,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.example.secondsunshine.Data.WeatherEntry;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.Buffer;
+import java.util.Date;
 
 public class NetworkUtil {
     final static String LOG_TAG = NetworkUtil.class.getSimpleName();
@@ -96,8 +99,8 @@ public class NetworkUtil {
     final static String OWM_DT_TXT = "dt_txt";
 
     //json 데이터에서 원하는 정보를 뺴온다.
-    public static String[] getDataFromJson(String JsonData, int dataNum) {
-        String weatherData[] = new String[dataNum];
+    public static WeatherEntry[] getWeateherDataFromJson(String JsonData, int dataNum) {
+        WeatherEntry weatherData[] = new WeatherEntry[dataNum];
 
 
 
@@ -148,11 +151,10 @@ public class NetworkUtil {
 
                 dateText = dayForcast.getString(OWM_DT_TXT);
 
+                Date date = new Date(utcTime);
 
-                String dayInformation = dateText + " - " + description;
-
-                Log.d(LOG_TAG, "get data from json " + dayInformation);
-                weatherData[i] = dayInformation;
+                WeatherEntry weatherEntry = new WeatherEntry(utcTime, description , weatherId,high,low,humidity,pressure, date);
+                weatherData[i] = weatherEntry;
             }
 
 

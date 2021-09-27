@@ -85,7 +85,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
             double temp_min = weatherData.getMin_temp();
 
 
-            String weatherSummary  = "data :  "+  date  + description + "   " + temp_max + "  /  "  + temp_min;
+            String weatherSummary  = "data :  "+  date + "   " + description + "   " + temp_max + "  /  "  + temp_min;
 
             listItemTextView.setText(weatherSummary);
         }
