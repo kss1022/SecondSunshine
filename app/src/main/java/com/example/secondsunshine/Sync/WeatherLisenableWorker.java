@@ -41,7 +41,8 @@ public class WeatherLisenableWorker extends ListenableWorker {
 
         mBackgroundTask.execute();
 
-        return (ListenableFuture<Result>) Result.success();
+        return (ListenableFuture<Result>) ListenableWorker.Result.success();
+
     }
 
     @Override

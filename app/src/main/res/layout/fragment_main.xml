@@ -12,48 +12,6 @@
        android:layout_height="match_parent"
        android:orientation="vertical">
 
-      <RelativeLayout
-          android:id="@+id/rl_testData"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:visibility="invisible"
-         >
-
-
-         <TextView
-             android:id="@+id/tv_main_location"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:gravity="center"
-             android:padding="15dp"
-             android:text="location"
-             >
-         </TextView>
-
-         <TextView
-             android:id="@+id/tv_main_day"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:layout_toRightOf="@+id/tv_main_location"
-             android:gravity="center"
-             android:padding="15dp"
-             android:text="day"
-             >
-         </TextView>
-
-         <TextView
-             android:id="@+id/tv_main_temperature"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:gravity="center"
-             android:layout_toRightOf="@+id/tv_main_day"
-             android:padding="15dp"
-             android:text="temperature"
-             >
-         </TextView>
-
-      </RelativeLayout>
-
 
 
       <ScrollView
@@ -62,7 +20,8 @@
          <androidx.recyclerview.widget.RecyclerView
              android:id="@+id/recyclerview_main"
              android:layout_width="match_parent"
-             android:layout_height="wrap_content"/>
+             android:layout_height="wrap_content"
+             />
       </ScrollView>
 
       <ProgressBar

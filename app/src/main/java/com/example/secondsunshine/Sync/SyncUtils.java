@@ -37,7 +37,7 @@ public class SyncUtils {
                         // If you want to delay the start of work by 60 seconds
                         .setInitialDelay(60, TimeUnit.SECONDS)
                         // Set a backoff criteria to be used when retry-ing
-                        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30000, TimeUnit.MILLISECONDS)
+                        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 3000, TimeUnit.MILLISECONDS)
                         // Set additional constraints
                         .setConstraints(constraints)
                         .build();

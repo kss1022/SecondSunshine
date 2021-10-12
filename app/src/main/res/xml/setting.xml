@@ -31,8 +31,8 @@
         <CheckBoxPreference
             app:key="@string/pref_checkbox_key"
             app:title="@string/pref_checkbox_label"
-            app:summaryOn="Shown"
-            app:summary="Hidden"
+            app:summaryOn="Notification ON"
+            app:summary="Notification OFF"
             app:defaultValue="@bool/pref_show_base_default">
         </CheckBoxPreference>
 

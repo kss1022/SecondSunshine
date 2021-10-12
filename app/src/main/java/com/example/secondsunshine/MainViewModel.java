@@ -29,5 +29,4 @@ public class MainViewModel extends AndroidViewModel {
     public LiveData<List<WeatherEntry>> getWeathers() {
         return weathers;
     }
-
 }

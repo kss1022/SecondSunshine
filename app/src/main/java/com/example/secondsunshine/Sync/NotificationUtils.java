@@ -32,7 +32,7 @@ public class NotificationUtils {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel   = new NotificationChannel(
                     WEATHER_UPDATE_CHENNEL_ID,
-                    context.getString(R.string.NOTIFIVATION_CHANNEL),
+                    context.getString(R.string.notification_channel),
                     NotificationManager.IMPORTANCE_HIGH
             );
             notificationManager.createNotificationChannel(channel);

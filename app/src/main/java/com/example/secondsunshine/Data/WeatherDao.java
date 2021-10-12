@@ -20,7 +20,6 @@ public interface WeatherDao {
     void insertWeather(WeatherEntry weatherEntry);
 
 
-
     @Update(onConflict = OnConflictStrategy.REPLACE)
     void updateWeather(WeatherEntry weatherEntry);
 
@@ -34,6 +33,11 @@ public interface WeatherDao {
 
     @Query("SELECT * FROM weather WHERE id = :id")
     LiveData<WeatherEntry> loadWeatherById(int id);
+
+    @Query("SELECT * FROM weather ORDER BY ROWID LIMIT 1")
+    LiveData<WeatherEntry> loadWeatherFirstPosition();
+
+
 
     @Query("SELECT EXISTS(SELECT * FROM weather)")
     boolean isExist();

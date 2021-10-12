@@ -133,7 +133,7 @@ public class NetworkUtil {
                 dayForcast = jsonArray.getJSONObject(i);
 
                 utcTime = dayForcast.getLong(OWM_DT);
-                localTime = TimeUtil.convertUtcToLocal(Long.toString(utcTime) );
+
 
                 JSONObject mainObject = dayForcast.getJSONObject(OWM_MAIN);
 

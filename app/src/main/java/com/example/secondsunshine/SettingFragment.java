@@ -94,9 +94,9 @@ public class SettingFragment extends PreferenceFragmentCompat
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     if (mCheckBoxPreference_Show.isChecked()) {
-                        adb.setMessage("설정 항목을 보이게 않게 하겠습니까?");
+                        adb.setMessage("알람을 보이게 않게 하겠습니까?");
                     } else {
-                        adb.setMessage("설정 항목을 보이게 하겠습니까?");
+                        adb.setMessage("알람을 보이게 하겠습니까?");
                     }
                     adb.show();
                     return false;

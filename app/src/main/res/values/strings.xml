@@ -9,7 +9,7 @@
     <string name="pref_temperature_label" >Temperature</string>
 
     <string name="pref_checkbox_key" translatable="false">checkbox_prefkey</string>
-    <string name="pref_checkbox_label" >CheckBox</string>
+    <string name="pref_checkbox_label" >Notification</string>
 
     <string name="pref_day_key" translatable="false">pref_day_key</string>
     <string name="pref_day_label">Day Num</string>
@@ -17,8 +17,11 @@
 
     <string name="array_metric">Metric</string>
     <string name="array_imperial">Imperial</string>
-    <string name="NOTIFIVATION_CHANNEL">NOTIFICATION_CHANNEL_NAME</string>
-    <string name="update_weatehr_notification_title">setContentText</string>
+
+
+    <string name="notification_channel">SunShine Update Weather Data</string>
+
+    <string name="update_weatehr_notification_title">"Today Weather"</string>
     <string name="update_weatehr_notification_body">setStyle</string>
 
 </resources>
